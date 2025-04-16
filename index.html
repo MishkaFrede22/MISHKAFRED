@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FNAF Security Calculator</title>
+    <style>
+        body {
+            background-color: #111;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .calculator {
+            width: 300px;
+            padding: 20px;
+            background-color: #222;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+            border: 2px solid #ff0000;
+            position: relative;
+            z-index: 2;
+        }
+
+        #display {
+            width: calc(100% - 20px);
+            margin-bottom: 15px;
+            padding: 15px 10px;
+            font-size: 24px;
+            text-align: right;
+            background-color: #000;
+            color: #ff0000;
+            border: 2px solid #ff0000;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            padding: 15px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button.operator {
+            background-color: #ff0000;
+            color: #fff;
+        }
+
+        button.clear {
+            background-color: #990000;
+        }
+
+        button.equals {
+            background-color: #00aa00;
+            grid-column: span 2;
+        }
+
+        /* FNAF Security Panel */
+        .security-panel {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .security-btn {
+            padding: 10px;
+            font-size: 14px;
+            background-color: #333;
+            border: 2px solid #ff0000;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+
+        .security-btn:active {
+            background-color: #ff0000;
+        }
+
+        .security-btn.active {
+            background-color: #ff0000;
+            box-shadow: 0 0 10px #ff0000;
+        }
+
+        /* Camera Static Effect */
+        .static-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.8),
+                rgba(0, 0, 0, 0.8) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            opacity: 0.1;
+            z-index: 10;
+        }
+
+        /* Power Bar */
+        .power-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #333;
+            margin-top: 15px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .power-level {
+            height: 100%;
+            width: 100%;
+            background-color: #00ff00;
+            transition: width 0.5s;
+        }
+
+        /* Animatronics */
+        .animatronic {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .freddy {
+            background-image: url('https://i.imgur.com/JR6YQ3O.png');
+            bottom: -100px;
+            left: 50px;
+        }
+
+        .bonnie {
+            background-image: url('https://i.imgur.com/XW7jJQv.png');
+            bottom: -100px;
+            right: 50px;
+        }
+
+        /* Jumpscare */
+        .jumpscare {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .jumpscare img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        /* Camera Feed */
+        .camera-feed {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 100px;
+            height: 80px;
+            background-color: #000;
+            border: 2px solid #ff0000;
+            border-radius: 5px;
+            overflow: hidden;
+            z-index: 3;
+        }
+
+        .camera-static {
+            width: 100%;
+            height: 100%;
+            background: url('https://i.imgur.com/3QX5QYt.gif');
+            background-size: cover;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="static-overlay"></div>
+        <div class="camera-feed">
+            <div class="camera-static"></div>
+        </div>
+        <input type="text" id="display" readonly>
+        <div class="buttons">
+            <button onclick="appendToDisplay('7')">7</button>
+            <button onclick="appendToDisplay('8')">8</button>
+            <button onclick="appendToDisplay('9')">9</button>
+            <button onclick="appendToDisplay('/')" class="operator">/</button>
+            
+            <button onclick="appendToDisplay('4')">4</button>
+            <button onclick="appendToDisplay('5')">5</button>
+            <button onclick="appendToDisplay('6')">6</button>
+            <button onclick="appendToDisplay('*')" class="operator">*</button>
+            
+            <button onclick="appendToDisplay('1')">1</button>
+            <button onclick="appendToDisplay('2')">2</button>
+            <button onclick="appendToDisplay('3')">3</button>
+            <button onclick="appendToDisplay('-')" class="operator">-</button>
+            
+            <button onclick="appendToDisplay('0')">0</button>
+            <button onclick="appendToDisplay('.')">.</button>
+            <button onclick="backspace()" class="clear">C</button>
+            <button onclick="appendToDisplay('+')" class="operator">+</button>
+            
+            <button onclick="allClear()" class="clear">AC</button>
+            <button onclick="calculate()" class="equals">=</button>
+        </div>
+
+        <!-- FNAF Security Controls -->
+        <div class="security-panel">
+            <button id="leftDoorBtn" class="security-btn" onclick="toggleDoor('left')">🚪 ЛЕВАЯ ДВЕРЬ</button>
+            <button id="rightDoorBtn" class="security-btn" onclick="toggleDoor('right')">🚪 ПРАВАЯ ДВЕРЬ</button>
+            <button id="flashlightBtn" class="security-btn" onclick="toggleFlashlight()">🔦 ФОНАРИК</button>
+        </div>
+
+        <!-- Power Level Indicator -->
+        <div class="power-bar">
+            <div id="powerLevel" class="power-level"></div>
+        </div>
+    </div>
+
+    <!-- Animatronics -->
+    <div class="animatronic freddy" id="freddy"></div>
+    <div class="animatronic bonnie" id="bonnie"></div>
+
+    <!-- Jumpscare -->
+    <div class="jumpscare" id="jumpscare">
+        <img src="img/fnaf-foxy.gif" >
+    </div>
+
+    <script>
+        let power = 100;
+        let leftDoorClosed = false;
+        let rightDoorClosed = false;
+        let flashlightOn = false;
+        let isJumpscareActive = false;
+
+        // Initialize animatronics
+        const freddy = document.getElementById('freddy');
+        const bonnie = document.getElementById('bonnie');
+        const jumpscare = document.getElementById('jumpscare');
+
+        function updatePower() {
+            const powerLevel = document.getElementById('powerLevel');
+            powerLevel.style.width = `${power}%`;
+            
+            if (power < 20) {
+                powerLevel.style.backgroundColor = '#ff0000';
+                // Animatronics become more aggressive when power is low
+                if (!isJumpscareActive) {
+                    freddy.style.opacity = '0.8';
+                    bonnie.style.opacity = '0.8';
+                }
+            } else if (power < 50) {
+                powerLevel.style.backgroundColor = '#ff9900';
+                freddy.style.opacity = '0.5';
+                bonnie.style.opacity = '0.5';
+            } else {
+                powerLevel.style.backgroundColor = '#00ff00';
+                freddy.style.opacity = '0';
+                bonnie.style.opacity = '0';
+            }
+
+            // Trigger jumpscare if power runs out
+            if (power <= 0 && !isJumpscareActive) {
+                triggerJumpscare();
+            }
+        }
+
+        function drainPower() {
+            if (leftDoorClosed || rightDoorClosed || flashlightOn) {
+                power -= 0.5;
+                if (power < 0) power = 0;
+                updatePower();
+            }
+        }
+
+        // Random animatronic movement
+        function moveAnimatronics() {
+            if (Math.random() < 0.02 && power > 0) {
+                if (Math.random() < 0.5) {
+                    freddy.style.opacity = '0.3';
+                    setTimeout(() => {
+                        if (!isJumpscareActive) freddy.style.opacity = '0';
+                    }, 2000);
+                } else {
+                    bonnie.style.opacity = '0.3';
+                    setTimeout(() => {
+                        if (!isJumpscareActive) bonnie.style.opacity = '0';
+                    }, 2000);
+                }
+            }
+        }
+
+        // Trigger jumpscare
+        function triggerJumpscare() {
+            isJumpscareActive = true;
+            jumpscare.style.opacity = '1';
+            playSound('jumpscare');
+            
+            setTimeout(() => {
+                jumpscare.style.opacity = '0';
+                isJumpscareActive = false;
+                resetGame();
+            }, 2000);
+        }
+
+        function resetGame() {
+            power = 100;
+            leftDoorClosed = false;
+            rightDoorClosed = false;
+            flashlightOn = false;
+            document.getElementById('leftDoorBtn').classList.remove('active');
+            document.getElementById('rightDoorBtn').classList.remove('active');
+            document.getElementById('flashlightBtn').classList.remove('active');
+            document.body.style.backgroundColor = '#111';
+            updatePower();
+        }
+
+        function toggleDoor(door) {
+            const btn = document.getElementById(`${door}DoorBtn`);
+            
+            if (door === 'left') {
+                leftDoorClosed = !leftDoorClosed;
+                btn.classList.toggle('active', leftDoorClosed);
+            } else {
+                rightDoorClosed = !rightDoorClosed;
+                btn.classList.toggle('active', rightDoorClosed);
+            }
+            
+            playSound('door');
+        }
+
+        function toggleFlashlight() {
+            flashlightOn = !flashlightOn;
+            const btn = document.getElementById('flashlightBtn');
+            btn.classList.toggle('active', flashlightOn);
+            
+            if (flashlightOn) {
+                document.body.style.backgroundColor = '#333';
+            } else {
+                document.body.style.backgroundColor = '#111';
+            }
+            
+            playSound('flashlight');
+        }
+
+        function playSound(type) {
+            if (isJumpscareActive) return;
+            
+            const audio = new Audio();
+            if (type === 'door') {
+                audio.src = 'https://www.soundjay.com/mechanical/sounds/door-02.mp3';
+            } else if (type === 'flashlight') {
+                audio.src = 'https://www.soundjay.com/buttons/sounds/button-10.mp3';
+            } else if (type === 'jumpscare') {
+                audio.src = 'https://www.soundjay.com/human/sounds/scream-03.mp3';
+            } else if (type === 'button') {
+                audio.src = 'https://www.soundjay.com/buttons/sounds/button-09.mp3';
+            } else if (type === 'error') {
+                audio.src = 'https://www.soundjay.com/mechanical/sounds/error-02.mp3';
+            } else if (type === 'success') {
+                audio.src = 'https://www.soundjay.com/buttons/sounds/beep-07.mp3';
+            }
+            audio.volume = 0.3;
+            audio.play().catch(e => console.log("Audio error:", e));
+        }
+
+        // Calculator Functions
+        function appendToDisplay(value) {
+            document.getElementById('display').value += value;
+            playSound('button');
+        }
+        
+        function backspace() {
+            const display = document.getElementById('display');
+            display.value = display.value.slice(0, -1);
+            playSound('button');
+        }
+        
+        function allClear() {
+            document.getElementById('display').value = '';
+            playSound('button');
+        }
+        
+        function calculate() {
+            try {
+                const result = eval(document.getElementById('display').value);
+                document.getElementById('display').value = result;
+                playSound('success');
+            } catch (error) {
+                document.getElementById('display').value = 'ERROR';
+                playSound('error');
+                setTimeout(() => {
+                    allClear();
+                }, 1000);
+            }
+        }
+
+        // Game loop
+        updatePower();
+        setInterval(drainPower, 1000);
+        setInterval(moveAnimatronics, 3000);
+    </script>
+</body>
+</html>
